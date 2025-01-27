@@ -1,0 +1,9 @@
+[Unit]
+Description=Sync Phonebook
+PartOf=webtop.service
+
+[Timer]
+OnCalendar=*-*-* 23:00:00
+
+[Install]
+WantedBy=timers.target

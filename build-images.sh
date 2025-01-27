@@ -144,6 +144,19 @@ buildah commit --rm "${container}" "${repobase}/${reponame}"
 # Append the image URL to the images array
 images+=("${repobase}/${reponame}")
 
+reponame="webtop-phonebook"
+container=$(buildah from docker.io/library/php:5-cli-alpine)
+buildah copy --from=docker.io/mlocati/php-extension-installer:2.0.4 ${container} /usr/bin/install-php-extensions /usr/local/bin/
+buildah run ${container} sh -c "install-php-extensions pgsql mysql"
+buildah add ${container} ${PWD}/phonebook/webtop2phonebook.php /usr/share/phonebooks/scripts/
+buildah add ${container} ${PWD}/phonebook/pbook2webtop.php /usr/share/phonebooks/post_scripts/
+buildah add ${container} ${PWD}/phonebook/start.sh /usr/share/phonebooks/
+buildah config --cmd /usr/share/phonebooks/start.sh ${container}
+# Commit the image
+buildah commit --rm "${container}" "${repobase}/${reponame}"
+
+# Append the image URL to the images array
+images+=("${repobase}/${reponame}")
 
 # Configure the image name
 reponame="webtop"
@@ -172,7 +185,8 @@ buildah config --entrypoint=/ \
     ${repobase}/webtop-postgres:${IMAGETAG:-latest} \
     ${repobase}/webtop-apache:${IMAGETAG:-latest} \
     ${repobase}/webtop-webdav:${IMAGETAG:-latest} \
-    ${repobase}/webtop-z-push:${IMAGETAG:-latest}" \
+    ${repobase}/webtop-z-push:${IMAGETAG:-latest} \
+    ${repobase}/webtop-phonebook:${IMAGETAG:-latest}" \
     "${container}"
 # Commit the image
 buildah commit "${container}" "${repobase}/${reponame}"

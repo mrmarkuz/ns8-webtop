@@ -69,6 +69,46 @@ modify the contents of the `./templates` directory directly, as they will
 be overwritten during the next application update. Files under
 `./state/webtop.properties.d/` are retained and are also added to backup.
 
+## Phonebook feature
+
+The phonebook synchronization system allows you to manage contacts between
+**WebTop** and a centralized **Phonebook**. This feature is supported by
+scripts and timer-based systemd services for automation.
+
+### Synchronization Scripts Overview
+
+- **`webtop2phonebook.php`:**
+   - Extracts contacts from WebTop.
+   - Processes the contacts and removes pre-existing WebTop entries in the
+     phonebook.
+   - Inserts the cleaned and updated contacts into the phonebook database.
+
+- **`pbook2webtop.php`:**
+   - Extracts contacts from the phonebook database.
+   - Cleans up the WebTop contacts folder and replaces its contents with
+     updated contacts.
+
+Both scripts use environment variables (`PHONEBOOK_DB_HOST`,
+`PHONEBOOK_DB_PASSWORD`) for connecting to the databases. The sync process runs daily at 23:00.
+
+### Manual Configuration Steps
+
+Follow these steps to manually configure and use the phonebook synchronization:
+1. Set the environment variables for the phonebook database connection in the
+   file `phonebook.env` located in the module state directory:
+  - **`PHONEBOOK_DB_HOST`**: The hostname or IP address of the phonebook
+    database, formatted as `host:port`.
+  - **`PHONEBOOK_DB_PASSWORD`**: The password for the phonebook database user.
+1. Adjust the permissions for the pbookuser in the NethVoice module:
+   ```bash
+   echo "RENAME USER 'pbookuser'@'127.0.0.1' TO 'pbookuser';" | runagent -m nethvoice1 mysql
+   ```
+   This changes the user account from being restricted to connections from
+   127.0.0.1 to allowing connections from any host.
+1. Enable and start the service and timer, eg.:
+  ```bash
+  runagent -m webtop1 systemctl --user enable --now phonebook.timer
+  ```
 ## Uninstall
 
 To uninstall the instance:
