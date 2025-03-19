@@ -6,23 +6,21 @@
  *
  * This script extracts contacts from phonebook and add them to WebTop5.
 **/
-define("DEBUG",false);
+define("DEBUG", getenv('DEBUG') === 'true');
 set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__));
 
-if($argc<2)
-	$foldername = "WebTop";
-else
-    $foldername = $argv[1];
-
+$foldername = getenv('FOLDER_NAME') ?: 'WebTop';
 $iddomain="NethServer";
 
-//get phonebook db host
+// get phonebook connection details
 $pbookhost = $_ENV["PHONEBOOK_DB_HOST"];
-//get phonebook db password
 $pbookpass = $_ENV["PHONEBOOK_DB_PASSWORD"];
+$pbookuser = $_ENV["PHONEBOOK_DB_USER"];
+$pbookport = $_ENV["PHONEBOOK_DB_PORT"];
+$pbookdb = $_ENV["PHONEBOOK_DB_NAME"];
 
-$database = mysql_connect($pbookhost,'pbookuser',$pbookpass) or die("Database error config");
-mysql_select_db('phonebook', $database);
+$database = mysql_connect("$pbookhost:$pbookport",$pbookuser,$pbookpass) or die("Database error config");
+mysql_select_db($pbookdb, $database);
 mysql_set_charset("utf8");
 
 $webtop_db = pg_connect("host=localhost dbname=webtop5 user=postgres");
