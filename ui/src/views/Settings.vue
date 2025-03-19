@@ -361,6 +361,26 @@
                       $t("settings.pecbridge_admin_mail_tooltip")
                     }}</template>
                   </NsTextInput>
+                  <NsComboBox
+                    v-model.trim="phonebook_instance"
+                    :autoFilter="true"
+                    :autoHighlight="true"
+                    :title="$t('settings.phonebook_instances')"
+                    :label="$t('settings.choose_phonebook_instance')"
+                    :options="phonebook_options"
+                    :acceptUserInput="false"
+                    :showItemType="true"
+                    :invalid-message="$t(error.phonebook_instance)"
+                    :disabled="
+                      loading.getConfiguration ||
+                      loading.configureModule ||
+                      loading.getDefaults
+                    "
+                    tooltipAlignment="start"
+                    tooltipDirection="top"
+                    ref="phonebook_instance"
+                  >
+                  </NsComboBox>
                 </template>
               </cv-accordion-item>
             </cv-accordion>
@@ -429,6 +449,9 @@ export default {
       ejabberd_module: "",
       ejabberd_domain: "",
       ejabberd_modules_id: [],
+      phonebook_modules_config: [],
+      phonebook_options: [],
+      phonebook_instance: "",
       accepted_timezone_list: [],
       ram_mb: "4096",
       locale: "",
@@ -462,6 +485,7 @@ export default {
         accepted_timezone_list: "",
         limit_min: "",
         limit_max: "",
+        phonebook_instance: "",
         webapp: {
           min_memory: "",
           max_memory: "",
@@ -556,6 +580,15 @@ export default {
         label: this.$t("settings.no_ejabberd_server"),
         value: "-",
       });
+
+      // Phonebook instances
+      this.phonebook_options = config.phonebook_modules_id
+      this.phonebook_options.unshift({
+        name: "-",
+        label: this.$t("settings.no_phonebook_instance"),
+        value: "-",
+      });
+
       this.accepted_timezone_list = config.accepted_timezone_list;
       this.ram_mb = String(config.ram_mb);
       this.getConfiguration();
@@ -615,6 +648,7 @@ export default {
       this.zpush = config.zpush;
       this.locale = config.locale;
       this.pecbridge_admin_mail = config.pecbridge_admin_mail;
+      this.phonebook_instance = config.phonebook_instance;
       // force to reload value after dom update
       this.$nextTick(() => {
         const mail_module_tmp = config.mail_module;
@@ -753,6 +787,7 @@ export default {
               loglevel: this.zpush.loglevel,
             },
             pecbridge_admin_mail: this.pecbridge_admin_mail,
+            phonebook_instance: this.phonebook_instance == '-' ? '' : this.phonebook_instance,
           },
           extra: {
             title: this.$t("settings.instance_configuration", {

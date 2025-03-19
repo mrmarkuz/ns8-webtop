@@ -49,7 +49,7 @@ for key in agent.list_service_providers(rdb,'xmpp','tcp'):
     }
     ejabberd.append(obj)
 
-# Retrive all phonebook service providers (NethVoice instances)
+# Retrieve all phonebook service providers (NethVoice instances)
 for key in agent.list_service_providers(rdb,'phonebook','tcp'):
     response = agent.tasks.run(agent_id=f"module/{key['module_id']}", action='get-phonebook-credentials')
     if response['exit_code'] == 0:
