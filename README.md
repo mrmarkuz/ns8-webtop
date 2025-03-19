@@ -91,24 +91,20 @@ scripts and timer-based systemd services for automation.
 Both scripts use environment variables (`PHONEBOOK_DB_HOST`,
 `PHONEBOOK_DB_PASSWORD`) for connecting to the databases. The sync process runs daily at 23:00.
 
-### Manual Configuration Steps
+To enable the synchronization, just set the name of a NethVoice instance in the `phonebook_instance` field
+inside the `configure-module` API.
 
-Follow these steps to manually configure and use the phonebook synchronization:
-1. Set the environment variables for the phonebook database connection in the
-   file `phonebook.env` located in the module state directory:
-  - **`PHONEBOOK_DB_HOST`**: The hostname or IP address of the phonebook
-    database, formatted as `host:port`.
-  - **`PHONEBOOK_DB_PASSWORD`**: The password for the phonebook database user.
-1. Adjust the permissions for the pbookuser in the NethVoice module:
-   ```bash
-   echo "RENAME USER 'pbookuser'@'127.0.0.1' TO 'pbookuser';" | runagent -m nethvoice1 mysql
-   ```
-   This changes the user account from being restricted to connections from
-   127.0.0.1 to allowing connections from any host.
-1. Enable and start the service and timer, eg.:
-  ```bash
-  runagent -m webtop1 systemctl --user enable --now phonebook.timer
-  ```
+To enable the debug mode, you must set the `DEBUG` variable inside the `phonebook.env` file:
+```
+runagent -m webtop1
+echo DEBUG=1 >> phonebook.env
+```
+
+To force the syncrhonization:
+```
+runagent -m webtop1 systemctl --user start phonebook
+```
+
 ## Uninstall
 
 To uninstall the instance:

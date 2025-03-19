@@ -38,7 +38,7 @@ response = agent.tasks.run(
         'http2https': True,
         'lets_encrypt': webtop_request_https_certificate,
         'host': data["hostname"],
-    },
+    }
 )
 # Check if traefik configuration has been successfull
 agent.assert_exp(response['exit_code'] == 0)
@@ -262,3 +262,30 @@ if "zpush" in data:
 if "pecbridge_admin_mail" in data and data["pecbridge_admin_mail"] != os.getenv("PECBRIDGE_ADMIN_MAIL"):
     agent.set_env("PECBRIDGE_ADMIN_MAIL", data["pecbridge_admin_mail"])
     agent.set_env("RESTART_PEC_BRIDGE", "1")
+
+if 'phonebook_instance' in data and data['phonebook_instance'] != "":
+    agent.set_env("PHONEBOOK_INSTANCE", data["phonebook_instance"])
+    response = agent.tasks.run( agent_id=f"module/{data['phonebook_instance']}", action='get-phonebook-credentials')
+    
+    if response['exit_code'] == 0:
+        pbook = {
+            "PHONEBOOK_DB_HOST": response['output'].get("host", ""),
+            "PHONEBOOK_DB_PASSWORD": response['output'].get("password", ""),
+            "PHONEBOOK_DB_PORT": response['output'].get("port", 3306),
+            "PHONEBOOK_DB_NAME": response['output'].get("database", "phonebook"),
+            "PHONEBOOK_DB_USER": response['output'].get("user", "phonebook"),
+            "PHONEBOOK_NETHVOICE_HOST": response['output'].get("nethvoice_host", ""),
+            "PHONEBOOK_INSTANCE_NAME": response['output'].get("instance_name", ""),
+            "PHONEBOOK_MODULE_ID": data['phonebook_instance']
+        }
+        agent.write_envfile("phonebook.env", pbook)
+    else:
+        raise Exception(f"Failed to get phonebook credentials for {data['phonebook_instance']}: {response['output']}")
+else:
+    agent.set_env("PHONEBOOK_INSTANCE", "")
+    # Remove the phonebook credentials file
+    try:
+        os.remove("phonebook.env")
+    except FileNotFoundError:
+        pass
+    

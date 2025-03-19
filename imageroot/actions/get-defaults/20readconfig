@@ -51,12 +51,20 @@ for key in agent.list_service_providers(rdb,'xmpp','tcp'):
 
 # Retrive all phonebook service providers (NethVoice instances)
 for key in agent.list_service_providers(rdb,'phonebook','tcp'):
-    response = agent.tasks.run(
-        agent_id=f"module/{key['module_id']}",
-        action='get-phonebook-credentials',
-        data={'instance': key['module_id']})
+    response = agent.tasks.run(agent_id=f"module/{key['module_id']}", action='get-phonebook-credentials')
     if response['exit_code'] == 0:
-        phonebook.append({key['module_id'] : response['output']})
+        if response['output'].get('instance_name'):
+            label = response['output']['instance_name']
+        else:
+            label = key['module_id']
+        if response['output'].get('nethvoice_host'):
+            label += f" ({response['output']['nethvoice_host']})"
+        # do not add credentials to not expose them inside the UI
+        phonebook.append({
+            "name": key['module_id'],
+            "label": label,
+            "value": key['module_id']
+        })
     else:
         print(f"Failed to get phonebook credentials for {key['module_id']}: {response['output']}", file=sys.stderr)
 

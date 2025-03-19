@@ -19,7 +19,6 @@ if restart_webdav == '1':
     agent.run_helper('systemctl','--user','restart','webdav').check_returncode()
 if restart_z_push == '1':
     agent.run_helper('systemctl','--user','restart','z-push').check_returncode()
-
 if restart_pec_bridge == '1':
     agent.run_helper('systemctl','--user','restart','pecbridge').check_returncode()
 

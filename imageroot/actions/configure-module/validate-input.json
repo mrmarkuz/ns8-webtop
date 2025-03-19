@@ -65,6 +65,11 @@
             "domain.com"
         ]
     },
+    "phonebook_instance": {
+        "type": "string",
+        "title": "Phonebook instance module id",
+        "description": "The module if of NethVoice instance providing the phonebook service"
+    },
 	"mail_module": {
             "type": "string",
 	    "title": "Mail module ID",
