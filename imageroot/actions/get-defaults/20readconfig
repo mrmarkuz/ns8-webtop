@@ -16,6 +16,7 @@ modules=[]
 accepted_timezone_list = []
 list_of_timezone_widget = []
 ejabberd = []
+phonebook = []
 
 # we query about all mail server to use it inside the user interface
 for key in agent.list_service_providers(rdb,'imap','tcp'):
@@ -48,6 +49,17 @@ for key in agent.list_service_providers(rdb,'xmpp','tcp'):
     }
     ejabberd.append(obj)
 
+# Retrive all phonebook service providers (NethVoice instances)
+for key in agent.list_service_providers(rdb,'phonebook','tcp'):
+    response = agent.tasks.run(
+        agent_id=f"module/{key['module_id']}",
+        action='get-phonebook-credentials',
+        data={'instance': key['module_id']})
+    if response['exit_code'] == 0:
+        phonebook.append({key['module_id'] : response['output']})
+    else:
+        print(f"Failed to get phonebook credentials for {key['module_id']}: {response['output']}", file=sys.stderr)
+
 # determine the amount of RAM available on the system
 try:
     with open('/proc/meminfo', 'r') as f:
@@ -60,6 +72,7 @@ except Exception:
 config={
         "mail_modules_id": modules,
         "ejabberd_modules_id": ejabberd,
+        "phonebook_modules_id": phonebook,
         "accepted_timezone_list": list_of_timezone_widget,
         "ram_mb": ram_mb,
         }
