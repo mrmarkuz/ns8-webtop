@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/usr/local/bin/php
 <?php
 /**
  * Copyright (C) 2023 Nethesis S.r.l.
