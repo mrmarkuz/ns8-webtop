@@ -72,7 +72,10 @@
         "pecbridge_admin_mail": "Indirizzo di notifica PEC Bridge (opzionale)",
         "pecbridge_admin_mail_placeholder": "Es. mail-admin@example.org",
         "pecbridge_admin_mail_format": "Deve essere un indirizzo email valido",
-        "pecbridge_admin_mail_tooltip": "Se è impostato un indirizzo email, PEC Bridge spedirà ad esso una copia delle notifiche."
+        "pecbridge_admin_mail_tooltip": "Se è impostato un indirizzo email, PEC Bridge spedirà ad esso una copia delle notifiche.",
+        "phonebook_instances": "Syncronize Phonebook with NethVoice instance",
+        "no_phonebook_instance": "Disable Phonebook syncronization",
+        "choose_phonebook_instance": "Choose a NethVoice instance in the list"
     },
     "action": {
         "get-name": "Visualizza nome",

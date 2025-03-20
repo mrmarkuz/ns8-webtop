@@ -51,7 +51,10 @@
         "pecbridge_admin_mail": "Dirección de notificación del puente PEC (opcional)",
         "pecbridge_admin_mail_placeholder": "Por ejemplo: mail-admin@example.org",
         "pecbridge_admin_mail_format": "Debe ser una dirección de correo electrónico válida",
-        "pecbridge_admin_mail_tooltip": "Si se configura una dirección de correo electrónico, PEC Bridge le enviará una copia de las notificaciones."
+        "pecbridge_admin_mail_tooltip": "Si se configura una dirección de correo electrónico, PEC Bridge le enviará una copia de las notificaciones.",
+        "phonebook_instances": "Syncronize Phonebook with NethVoice instance",
+        "no_phonebook_instance": "Disable Phonebook syncronization",
+        "choose_phonebook_instance": "Choose a NethVoice instance in the list"
     },
     "error": {
         "403": "Operación no autorizada",
