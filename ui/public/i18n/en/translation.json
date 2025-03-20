@@ -73,9 +73,9 @@
         "pecbridge_admin_mail_placeholder": "E.g. mail-admin@example.org",
         "pecbridge_admin_mail_tooltip": "If an email address is set, PEC Bridge will send a copy of notifications to it.",
         "pecbridge_admin_mail_format": "Must be a valid email address",
-        "phonebook_instances": "Syncronize Phonebook with NethVoice instance",
+        "phonebook_instances": "Synchronize Phonebook with NethVoice instance",
         "choose_phonebook_instance": "Choose a NethVoice instance in the list",
-        "no_phonebook_instance": "Disable Phonebook syncronization"
+        "no_phonebook_instance": "Disable Phonebook synchronization"
     },
     "about": {
         "title": "About"
