@@ -31,8 +31,18 @@ if ($pgresult == FALSE)
     throw new Exception(pg_last_error($webtop_db));
 
 $builtin = 'true';
-$foldername = "Rubrica Centralizzata";
-$user = "admin";
+$foldername = getenv('PHONEBOOK_WEBTOP_FOLDER') ?: 'Rubrica Centralizzata';
+$user = getenv('PHONEBOOK_WEBTOP_ADMIN'); # Environment configuration has the precedence
+if (!$user) {
+    $result = pg_query($webtop_db, "SELECT user_id FROM webtop5.core.users WHERE display_name = 'Builtin administrator user';");
+    if ($result && pg_num_rows($result) > 0) {
+        $row = pg_fetch_assoc($result);
+        $user = $row['user_id'];
+    } else {
+        # Fallback to NS8 default user
+        $user = 'administrator';
+    }
+}
 $pgtest = pg_query($webtop_db, "SELECT * from contacts.categories where user_id='$user' and domain_id='$iddomain' and name = '$foldername';");
 $rows = pg_num_rows($pgtest);
 $num_contacts = 0;

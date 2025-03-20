@@ -84,7 +84,11 @@ scripts and timer-based systemd services for automation.
    - Inserts the cleaned and updated contacts into the phonebook database.
 
 - **`pbook2webtop.php`:**
-   - Extracts contacts from the phonebook database.
+   - Extracts contacts from the phonebook database and import them
+     inside a new `Rubrica Centralizzata` category for the user named `Bultin administrator user`
+     (usually `administrator` for NS8 and `admin` for installations migrated from NS7).
+     To change the user, you must specify the `PHONEBOOK_WEBTOP_ADMIN` inside the `phonebook.env` file.
+     To change the category name, you must specify the `PHONEBOOK_WEBTOP_FOLDER` inside the `phonebook.env` file.
    - Cleans up the WebTop contacts folder and replaces its contents with
      updated contacts.
 
@@ -94,15 +98,23 @@ Both scripts use environment variables (`PHONEBOOK_DB_HOST`,
 To enable the synchronization, just set the name of a NethVoice instance in the `phonebook_instance` field
 inside the `configure-module` API.
 
+
+To force the synchronization:
+```
+runagent -m webtop1 systemctl --user start phonebook
+```
+
+### Debugging
+
 To enable the debug mode, you must set the `DEBUG` variable inside the `phonebook.env` file:
 ```
 runagent -m webtop1
 echo DEBUG=1 >> phonebook.env
 ```
 
-To force the syncrhonization:
+You can enter the phonebook container using:
 ```
-runagent -m webtop1 systemctl --user start phonebook
+podman run -ti --rm --env-file=./phonebook.env --pod=webtop --replace --name=phonebook-dev ${WEBTOP_PHONEBOOK_IMAGE} /bin/sh
 ```
 
 ## Uninstall
