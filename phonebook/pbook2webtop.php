@@ -34,7 +34,7 @@ $builtin = 'true';
 $foldername = getenv('PHONEBOOK_WEBTOP_FOLDER') ?: 'Rubrica Centralizzata';
 $user = getenv('PHONEBOOK_WEBTOP_ADMIN'); # Environment configuration has the precedence
 if (!$user) {
-    $result = pg_query($webtop_db, "SELECT user_id FROM webtop5.core.users WHERE display_name = 'Builtin administrator user';");
+    $result = pg_query($webtop_db, "SELECT user_id FROM webtop5.core.users WHERE domain_id='NethServer' and display_name in ('Builtin administrator user', 'DomainAdmin [NethServer]', 'NethServer Enterprise Administrator');");
     if ($result && pg_num_rows($result) > 0) {
         $row = pg_fetch_assoc($result);
         $user = $row['user_id'];
