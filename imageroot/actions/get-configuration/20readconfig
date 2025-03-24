@@ -31,6 +31,8 @@ config={
             "loglevel": os.environ["Z_PUSH_LOG_LEVEL"],
             },
         "pecbridge_admin_mail": os.getenv("PECBRIDGE_ADMIN_MAIL", ""),
+        "pecbridge_from_address": os.getenv("PECBRIDGE_FROM_ADDRESS", ""),
+        "pecbridge_notify_owner": os.getenv("PECBRIDGE_NOTIFY_OWNER", "all"),
         "phonebook_instance": os.getenv("PHONEBOOK_INSTANCE", ""),
         }
 
