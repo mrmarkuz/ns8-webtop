@@ -2,6 +2,7 @@ name: "Publish images"
 
 on:
   push:
+  workflow_dispatch:
 
 permissions:
   packages: write
