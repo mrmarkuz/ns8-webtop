@@ -43,24 +43,21 @@ response = agent.tasks.run(
 # Check if traefik configuration has been successfull
 agent.assert_exp(response['exit_code'] == 0)
 
-if data["hostname"] != os.getenv("WEBTOP_HOSTNAME"):
+public_url = 'https://' + data["hostname"] + '/webtop'
+dav_url = 'https://' + data["hostname"] + '/webtop-dav/server.php'
 
-    public_url = 'https://' + data["hostname"] + '/webtop'
-    dav_url = 'https://' + data["hostname"] + '/webtop-dav/server.php'
+with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
+    print("DELETE FROM \"core\".\"settings\" WHERE service_id = 'com.sonicle.webtop.core' and key = 'public.url';\n", file=psql.stdin)
+    print("INSERT INTO \"core\".\"settings\" (\"service_id\", \"key\", \"value\") VALUES ('com.sonicle.webtop.core', 'public.url', \'" + public_url + "\');\n", file=psql.stdin)
 
-    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
-        print("DELETE FROM \"core\".\"settings\" WHERE service_id = 'com.sonicle.webtop.core' and key = 'public.url';\n", file=psql.stdin)
-        print("INSERT INTO \"core\".\"settings\" (\"service_id\", \"key\", \"value\") VALUES ('com.sonicle.webtop.core', 'public.url', \'" + public_url + "\');\n", file=psql.stdin)
+    print("DELETE FROM \"core\".\"settings\" WHERE service_id = 'com.sonicle.webtop.core' and key = 'davserver.url';\n", file=psql.stdin)
+    print("INSERT INTO \"core\".\"settings\" (\"service_id\", \"key\", \"value\") VALUES ('com.sonicle.webtop.core', 'davserver.url',\'" + dav_url + "\');\n", file=psql.stdin)
 
-        print("DELETE FROM \"core\".\"settings\" WHERE service_id = 'com.sonicle.webtop.core' and key = 'davserver.url';\n", file=psql.stdin)
-        print("INSERT INTO \"core\".\"settings\" (\"service_id\", \"key\", \"value\") VALUES ('com.sonicle.webtop.core', 'davserver.url',\'" + dav_url + "\');\n", file=psql.stdin)
+agent.assert_exp(psql.returncode == 0) # check the command is succesfull
 
-    agent.assert_exp(psql.returncode == 0) # check the command is succesfull
+agent.set_env("WEBTOP_HOSTNAME", data["hostname"])
 
-    agent.set_env("WEBTOP_HOSTNAME", data["hostname"])
-    agent.set_env("RESTART_WEBAPP", "1")
-
-if "locale" in data and data["locale"] != os.environ["WEBTOP_LOCALE"]:
+if "locale" in data:
 
     locales = {
             'it_IT': {
@@ -139,9 +136,8 @@ if "locale" in data and data["locale"] != os.environ["WEBTOP_LOCALE"]:
     agent.assert_exp(psql.returncode == 0) # check the command is succesfull
 
     agent.set_env("WEBTOP_LOCALE", data["locale"])
-    agent.set_env("RESTART_WEBAPP", "1")
 
-if "timezone" in data and data["timezone"] != os.environ["WEBTOP_TIMEZONE"]:
+if "timezone" in data:
     with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
         print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'default.i18n.timezone';\n", file=psql.stdin)
         print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'default.i18n.timezone','" + data["timezone"] + "');\n", file=psql.stdin)
@@ -150,118 +146,99 @@ if "timezone" in data and data["timezone"] != os.environ["WEBTOP_TIMEZONE"]:
 
     agent.set_env("WEBTOP_TIMEZONE", data["timezone"])
 
-    agent.set_env("RESTART_WEBAPP", "1")
-    agent.set_env("RESTART_WEBDAV", "1")
-    agent.set_env("RESTART_Z_PUSH", "1")
-
 # adjust the ejabberd module, when we disabled globally the chat module we use ''
 if "ejabberd_module" in data and "ejabberd_domain" in data:
-    if data["ejabberd_module"] != os.getenv("EJABBERD_MODULE","") and data["ejabberd_domain"] != os.getenv("EJABBERD_DOMAIN",""):
-        ejabberd_module = data["ejabberd_module"]
-        ejabberd_domain = data["ejabberd_domain"]
-        # Save the ejabberd module UUID to automatically re-configure the module if it is
-        # already available:
-        if ejabberd_module != "":
-            ejabberd_uuid = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "module_uuid") or ""
-            # retrieve the ejabberd host and port
-            ejabberd_host = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "host") or ""
-            ejabberd_port = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "port") or ""
-        else:
-            # if ejabberd module is empty, we set the default values
-            # we do not want to use the chat module
-            ejabberd_uuid = ""
-            ejabberd_host = "localhost"
-            ejabberd_port = "5222"
+    ejabberd_module = data["ejabberd_module"]
+    ejabberd_domain = data["ejabberd_domain"]
+    # Save the ejabberd module UUID to automatically re-configure the module if it is
+    # already available:
+    if ejabberd_module != "":
+        ejabberd_uuid = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "module_uuid") or ""
+        # retrieve the ejabberd host and port
+        ejabberd_host = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "host") or ""
+        ejabberd_port = rdb.hget(f"module/{ejabberd_module}/srv/tcp/xmpp", "port") or ""
+    else:
+        # if ejabberd module is empty, we set the default values
+        # we do not want to use the chat module
+        ejabberd_uuid = ""
+        ejabberd_host = "localhost"
+        ejabberd_port = "5222"
 
-        with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
-                print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'xmpp.host';\n", file=psql.stdin)
-                print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'xmpp.port';\n", file=psql.stdin)
-                print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'xmpp.host', '" + ejabberd_host + "');\n", file=psql.stdin)
-                print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'xmpp.port', '" + ejabberd_port + "');\n", file=psql.stdin)
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
+            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'xmpp.host';\n", file=psql.stdin)
+            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'xmpp.port';\n", file=psql.stdin)
+            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'xmpp.host', '" + ejabberd_host + "');\n", file=psql.stdin)
+            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'xmpp.port', '" + ejabberd_port + "');\n", file=psql.stdin)
 
-        agent.assert_exp(psql.returncode == 0) # check the command is succesfull
+    agent.assert_exp(psql.returncode == 0) # check the command is succesfull
 
-        # we set the env variable to configure the module
-        agent.set_env("EJABBERD_MODULE", ejabberd_module)
-        agent.set_env("EJABBERD_DOMAIN", ejabberd_domain)
-        agent.set_env("EJABBERD_MODULE_UUID", ejabberd_uuid)
-        agent.set_env("RESTART_WEBAPP", "1")
+    # we set the env variable to configure the module
+    agent.set_env("EJABBERD_MODULE", ejabberd_module)
+    agent.set_env("EJABBERD_DOMAIN", ejabberd_domain)
+    agent.set_env("EJABBERD_MODULE_UUID", ejabberd_uuid)
 
 if "mail_module" in data and "mail_domain" in data:
-    if data["mail_module"] != os.getenv("MAIL_MODULE") or data["mail_domain"] != os.getenv("MAIL_DOMAIN"):
-        mail_module = data["mail_module"]
-        mail_domain = data["mail_domain"]
+    mail_module = data["mail_module"]
+    mail_domain = data["mail_domain"]
 
-        smtp_host = rdb.hget(f"module/{mail_module}/srv/tcp/submission", "host") or ""
-        smtp_port = rdb.hget(f"module/{mail_module}/srv/tcp/submission", "port") or ""
+    smtp_host = rdb.hget(f"module/{mail_module}/srv/tcp/submission", "host") or ""
+    smtp_port = rdb.hget(f"module/{mail_module}/srv/tcp/submission", "port") or ""
 
-        imap_host = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "host") or ""
-        imap_port = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "port") or ""
+    imap_host = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "host") or ""
+    imap_port = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "port") or ""
 
-        # Save the mail module UUID to automatically re-configure the module if it is
-        # already available:
-        mail_uuid = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "module_uuid") or ""
-        agent.set_env("MAIL_MODULE_UUID", mail_uuid)
+    # Save the mail module UUID to automatically re-configure the module if it is
+    # already available:
+    mail_uuid = rdb.hget(f"module/{mail_module}/srv/tcp/imap", "module_uuid") or ""
+    agent.set_env("MAIL_MODULE_UUID", mail_uuid)
 
-        agent.set_env("Z_PUSH_IMAP_SERVER", imap_host)
-        agent.set_env("RESTART_Z_PUSH", "1")
+    agent.set_env("Z_PUSH_IMAP_SERVER", imap_host)
 
-        response = agent.tasks.run(f"module/{mail_module}", action='reveal-master-credentials')
-        agent.assert_exp(response['exit_code'] == 0)
+    response = agent.tasks.run(f"module/{mail_module}", action='reveal-master-credentials')
+    agent.assert_exp(response['exit_code'] == 0)
 
-        vmail_password = response['output']['password']
+    vmail_password = response['output']['password']
 
-        with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
-            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'smtp.host';\n", file=psql.stdin)
-            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'smtp.port';\n", file=psql.stdin)
-            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'smtp.host', '" + smtp_host + "');\n", file=psql.stdin)
-            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'smtp.port', '" + smtp_port + "');\n", file=psql.stdin)
+    with subprocess.Popen(['podman', 'exec', '-i', 'postgres', 'psql', '-U', 'postgres', 'webtop5'], stdout=sys.stderr, stdin=subprocess.PIPE, text=True) as psql:
+        print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'smtp.host';\n", file=psql.stdin)
+        print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.core' and key = 'smtp.port';\n", file=psql.stdin)
+        print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'smtp.host', '" + smtp_host + "');\n", file=psql.stdin)
+        print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.core', 'smtp.port', '" + smtp_port + "');\n", file=psql.stdin)
 
-            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'default.host';\n", file=psql.stdin)
-            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'default.port';\n", file=psql.stdin)
-            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'default.host', '" + imap_host + "');\n", file=psql.stdin)
-            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'default.port', '" + imap_port + "');\n", file=psql.stdin)
+        print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'default.host';\n", file=psql.stdin)
+        print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'default.port';\n", file=psql.stdin)
+        print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'default.host', '" + imap_host + "');\n", file=psql.stdin)
+        print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'default.port', '" + imap_port + "');\n", file=psql.stdin)
 
-            print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'nethtop.vmail.secret';\n", file=psql.stdin)
-            print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'nethtop.vmail.secret', '" + vmail_password + "');\n", file=psql.stdin)
+        print("DELETE FROM core.settings WHERE service_id = 'com.sonicle.webtop.mail' and key = 'nethtop.vmail.secret';\n", file=psql.stdin)
+        print("INSERT INTO core.settings (service_id, key, value) VALUES ('com.sonicle.webtop.mail', 'nethtop.vmail.secret', '" + vmail_password + "');\n", file=psql.stdin)
 
-        agent.assert_exp(psql.returncode == 0) # check the command is succesfull
+    agent.assert_exp(psql.returncode == 0) # check the command is succesfull
 
-        agent.set_env("MAIL_MODULE", mail_module)
-        agent.set_env("MAIL_DOMAIN", mail_domain)
-        agent.set_env("RESTART_WEBAPP", "1")
+    agent.set_env("MAIL_MODULE", mail_module)
+    agent.set_env("MAIL_DOMAIN", mail_domain)
 
-# In case of module move/migrate/restore, restart webtop
-if "MAIL_MODULE" in os.environ and ("mail_module" not in data or data["mail_module"] == os.getenv("MAIL_MODULE")) :
-        agent.set_env("RESTART_WEBAPP", "1")
 
 if "webapp" in data:
-    if "debug" in data["webapp"] and data["webapp"]["debug"] != os.getenv("WEBAPP_JS_DEBUG"):
+    if "debug" in data["webapp"]:
             agent.set_env("WEBAPP_JS_DEBUG", data["webapp"]["debug"])
-            agent.set_env("RESTART_WEBAPP", "1")
-    if "min_memory" in data["webapp"] and data["webapp"]["min_memory"] != os.getenv("WEBAPP_MIN_MEMORY"):
+    if "min_memory" in data["webapp"]:
             agent.set_env("WEBAPP_MIN_MEMORY", data["webapp"]["min_memory"])
-            agent.set_env("RESTART_WEBAPP", "1")
-    if "max_memory" in data["webapp"] and data["webapp"]["max_memory"] != os.getenv("WEBAPP_MAX_MEMORY"):
+    if "max_memory" in data["webapp"]:
             agent.set_env("WEBAPP_MAX_MEMORY", data["webapp"]["max_memory"])
-            agent.set_env("RESTART_WEBAPP", "1")
 
 if "webdav" in data:
-    if "debug" in data["webdav"] and data["webdav"]["debug"] != os.getenv("WEBDAV_DEBUG"):
+    if "debug" in data["webdav"]:
             agent.set_env("WEBDAV_DEBUG", data["webdav"]["debug"])
-            agent.set_env("RESTART_WEBDAV", "1")
-    if "loglevel" in data["webdav"] and data["webdav"]["loglevel"] != os.getenv("WEBDAV_LOG_LEVEL"):
+    if "loglevel" in data["webdav"]:
             agent.set_env("WEBDAV_LOG_LEVEL", data["webdav"]["loglevel"])
-            agent.set_env("RESTART_WEBDAV", "1")
 
 if "zpush" in data:
-    if "loglevel" in data["zpush"] and data["zpush"]["loglevel"] != os.getenv("Z_PUSH_LOG_LEVEL"):
+    if "loglevel" in data["zpush"]:
             agent.set_env("Z_PUSH_LOG_LEVEL", data["zpush"]["loglevel"])
-            agent.set_env("RESTART_Z_PUSH", "1")
 
-if "pecbridge_admin_mail" in data and data["pecbridge_admin_mail"] != os.getenv("PECBRIDGE_ADMIN_MAIL"):
+if "pecbridge_admin_mail" in data:
     agent.set_env("PECBRIDGE_ADMIN_MAIL", data["pecbridge_admin_mail"])
-    agent.set_env("RESTART_PEC_BRIDGE", "1")
 
 if 'phonebook_instance' in data and data['phonebook_instance'] != "":
     agent.set_env("PHONEBOOK_INSTANCE", data["phonebook_instance"])
