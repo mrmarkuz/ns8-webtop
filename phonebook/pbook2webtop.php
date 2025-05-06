@@ -170,8 +170,7 @@ while ($row = $result->fetch_assoc()) {
     if (isset($notes)) {
         $arrayContact["notes"] = truncateString($notes, 2000);
     }
-    $id = getGlobalKey($webtop_db, 'SEQ_CONTACTS');
-    $arrayContact["contact_id"] = $id;
+    $arrayContact["contact_id"] = generateUUIDv1();
     $arrayContact["category_id"] = getCategoryId($foldername, $user, $iddomain);
     $arrayContact["public_uid"] = uniqid();
     $arrayContact["href"] = $arrayContact["public_uid"] . ".vcf";
@@ -187,6 +186,41 @@ while ($row = $result->fetch_assoc()) {
 }
 debug("Imported $num_contacts contacts on Phonebook $foldername ($user)\n");
 
+function generateUUIDv1() {
+    // Get the current timestamp in 100-nanosecond intervals since UUID epoch (1582-10-15)
+    $time = microtime(true) * 10000000 + 0x01B21DD213814000;
+
+    // Convert time to hexadecimal
+    $timeHex = sprintf('%016x', $time);
+
+    // Extract parts of the time for the UUID
+    $timeLow = substr($timeHex, -8);
+    $timeMid = substr($timeHex, -12, 4);
+    $timeHighAndVersion = substr($timeHex, 0, 4);
+
+    // Set UUID version to 1 (time-based)
+    $timeHighAndVersion = dechex(hexdec($timeHighAndVersion) | 0x1000);
+
+    // Generate a random clock sequence (14 bits)
+    $clockSeq = random_int(0, 0x3FFF);
+
+    // Set the variant to RFC 4122 (10xx)
+    $clockSeq = $clockSeq | 0x8000;
+
+    // Generate a random node (48 bits)
+    $node = bin2hex(random_bytes(6));
+
+    // Construct the UUID string
+    return sprintf(
+        '%08s-%04s-%04s-%04x-%012s',
+        $timeLow,
+        $timeMid,
+        $timeHighAndVersion,
+        $clockSeq,
+        $node
+    );
+}
+
 function getCategoryId($folderid, $login, $iddomain)
 {
     global $webtop_db;
@@ -199,19 +233,6 @@ function getCategoryId($folderid, $login, $iddomain)
         }
     }
     return null;
-}
-
-function getGlobalKey()
-{
-    global $webtop_db;
-    $result_contact = pg_query($webtop_db, ("SELECT nextval('contacts.SEQ_CONTACTS') ;"));
-    if ($result_contact == FALSE)
-        throw new Exception(pg_last_error($webtop_db));
-    while ($row_contact = pg_fetch_row($result_contact)) {
-        if (isset($row_contact[0])) {
-            return $row_contact[0];
-        }
-    }
 }
 
 function truncateString($string, $size)
