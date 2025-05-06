@@ -211,8 +211,10 @@ function generateUUIDv1() {
     $node = bin2hex(random_bytes(6));
 
     // Construct the UUID string
+    // Standard format: %08s-%04s-%04s-%04x-%012s
+    // WebTop format, without hyphens
     return sprintf(
-        '%08s-%04s-%04s-%04x-%012s',
+        '%08s%04s%04s%04x%012s',
         $timeLow,
         $timeMid,
         $timeHighAndVersion,
