@@ -17,6 +17,7 @@ Restart=always
 ExecStartPre=/bin/rm -f %t/webapp.pid %t/webapp.ctr-id
 ExecStartPre=/usr/local/bin/runagent %S/scripts/expandconfig-webapp
 ExecStartPre=/usr/local/bin/runagent discover-ldap
+ExecStartPre=/usr/local/bin/runagent mkdir -p custom-jars
 ExecStart=/usr/bin/podman run \
     --env=CATALINA_OPTS="-server -Xms${WEBAPP_MIN_MEMORY}m -Xmx${WEBAPP_MAX_MEMORY}m \
                          -Djava.security.egd=file:/dev/./urandom -Dfile.encoding=UTF8 \
@@ -26,6 +27,7 @@ ExecStart=/usr/bin/podman run \
     ${TMCE_PLUGIN} \
     --volume=webtop-home:/var/lib/nethserver/webtop \
     --volume=./webtop.properties:/etc/webtop/webtop.properties:z \
+    --volume=./custom-jars:/usr/local/tomcat/webapps/webtop/WEB-INF/customs:z \
     --pod=webtop \
     --detach \
     --conmon-pidfile=%t/webapp.pid \
