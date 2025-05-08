@@ -14,7 +14,7 @@ webtop_version=$(cat ${PWD}/webtop5-build/VERSION)
 
 # Download of external deps and CHECKSUM verification:
 if ! compgen -G "pecbridge-*.tar.gz"; then
-    curl --netrc --fail -O "https://www.sonicle.com/nethesis/commercial/pecbridge/pecbridge-5.4.5.tar.gz"
+    curl --netrc --fail -O "https://www.sonicle.com/nethesis/commercial/pecbridge/pecbridge-5.4.7.tar.gz"
 fi
 sha256sum -c CHECKSUM
 
