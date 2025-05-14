@@ -11,6 +11,8 @@ import os
 timezone = os.getenv("WEBTOP_TIMEZONE")
 log_level = os.getenv("Z_PUSH_LOG_LEVEL")
 imap_server = os.getenv("Z_PUSH_IMAP_SERVER")
+smtp_server = os.getenv("Z_PUSH_SMTP_SERVER")
+smtp_port = os.getenv("Z_PUSH_SMTP_PORT")
 use_legacy_folder_ids = os.getenv("Z_PUSH_USE_LEGACY_FOLDER_IDS", 'False').lower() in ('true', '1', 't')
 
 config={
@@ -20,7 +22,9 @@ config={
             "file": "php://stdout"
             },
         "mail": {
-            "imapServer": f"{imap_server}"
+            "imapServer": f"{imap_server}",
+            "smtpServer": f"{smtp_server}",
+            "smtpPort": f"{smtp_port}",
             },
         "webtop": {
             "apiBaseUrl": "http://localhost:8080/webtop"

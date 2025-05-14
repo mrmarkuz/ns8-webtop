@@ -193,6 +193,8 @@ if "mail_module" in data and "mail_domain" in data:
     agent.set_env("MAIL_MODULE_UUID", mail_uuid)
 
     agent.set_env("Z_PUSH_IMAP_SERVER", imap_host)
+    agent.set_env("Z_PUSH_SMTP_SERVER", smtp_host)
+    agent.set_env("Z_PUSH_SMTP_PORT", smtp_port)
 
     response = agent.tasks.run(f"module/{mail_module}", action='reveal-master-credentials')
     agent.assert_exp(response['exit_code'] == 0)
