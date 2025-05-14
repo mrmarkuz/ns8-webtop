@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tomcat: Revert back original Tomcat (< 8.0.30) behaviour in redirects -->
+<Context useRelativeRedirects="false">
+	<!-- Tomcat: Disable session persistence across Tomcat restarts -->
+	<Manager pathname="" />
+	<Resources>
+	<!-- This tells Tomcat to look for additional JAR files -->
+	<PostResources className="org.apache.catalina.webresources.DirResourceSet"
+				   webAppMount="/WEB-INF/lib"
+				   base="/usr/local/tomcat/webapps/webtop/WEB-INF/webtop-custom-jars/" />
+	</Resources>
+</Context>

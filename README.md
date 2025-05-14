@@ -71,9 +71,9 @@ be overwritten during the next application update. Files under
 
 ### Customs jar files
 
-WebTop is a Java platform and you can add and run your custom JAR files. For this purpose you will find a custom-jars folder in the home of WebTop
+WebTop is a Java platform and you can add and run your custom JAR files. For this purpose you will find a webtop-custom-jars folder in the home of WebTop
 
-Drop your custom java files in `/home/webtop1/.config/state/custom-jars` and restart `webtop` service
+Drop your custom java files in `/home/webtop1/.config/state/webtop-custom-jars` and restart `webtop` service
 
     runagent -m webtop1 systemctl --user restart webtop
 
