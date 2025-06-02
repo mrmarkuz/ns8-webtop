@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+# Expand Autoconfiguration Template
+# This script expands the autoconfiguration templates for Thunderbird and Outlook
+
+set -e 
+
+# thunderbird autoconfiguration
+INPUT_FILE="../templates/autoconfiguration/config-v1.1.xml"
+OUTPUT_FILE="./autoconfiguration/config-v1.1.xml"
+sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"
+
+# outlook autoconfiguration
+INPUT_FILE="../templates/autoconfiguration/autodiscover.xml"
+OUTPUT_FILE="./autoconfiguration/autodiscover.xml"
+sed "s/{{ domain }}/$MAIL_DOMAIN/g" "$INPUT_FILE" > "$OUTPUT_FILE"

@@ -12,6 +12,7 @@ EnvironmentFile=%S/state/environment
 WorkingDirectory=%S/state
 Restart=always
 ExecStartPre=/bin/rm -f %t/apache.pid %t/apache.ctr-id
+ExecStartPre=/usr/bin/mkdir -vp autoconfiguration
 ExecStart=/usr/bin/podman run \
     --pod=webtop \
     --detach \
@@ -19,6 +20,7 @@ ExecStart=/usr/bin/podman run \
     --cidfile=%t/apache.ctr-id \
     --cgroups=no-conmon \
     --replace --name=%N \
+    --volume ./autoconfiguration:/usr/share/webtop/autoconfiguration:z \
     ${WEBTOP_APACHE_IMAGE}
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/apache.ctr-id -t 10
 ExecStopPost=/usr/bin/podman rm --ignore -f --cidfile %t/apache.ctr-id

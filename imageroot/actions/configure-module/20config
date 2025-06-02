@@ -43,6 +43,37 @@ response = agent.tasks.run(
 # Check if traefik configuration has been successfull
 agent.assert_exp(response['exit_code'] == 0)
 
+if "mail_module" in data and "mail_domain" in data:
+    mail_domain = data["mail_domain"]
+    # Configure Traefik to route to autoconfig for thunderbird
+    response = agent.tasks.run(
+        agent_id=agent.resolve_agent_id('traefik@node'),
+        action='set-route',
+        data={
+            'instance':  os.environ['MODULE_ID'] + '-autoconfig',
+            'url':  'http://127.0.0.1:' + os.environ["TCP_PORT"],
+            'http2https': False,
+            'lets_encrypt': webtop_request_https_certificate,
+            'host': 'autoconfig.' + mail_domain,
+        }
+    )
+    # Check if traefik configuration has been successfull
+    agent.assert_exp(response['exit_code'] == 0)
+    # Configure Traefik to route to autodiscover for outlook
+    response = agent.tasks.run(
+        agent_id=agent.resolve_agent_id('traefik@node'),
+        action='set-route',
+        data={
+            'instance': os.environ['MODULE_ID']+'-autodiscover',
+            'url':  'http://127.0.0.1:' + os.environ["TCP_PORT"],
+            'http2https': False,
+            'lets_encrypt': webtop_request_https_certificate,
+            'host': 'autodiscover.' + mail_domain,
+        }
+    )
+    # Check if traefik configuration has been successfull
+    agent.assert_exp(response['exit_code'] == 0)
+
 public_url = 'https://' + data["hostname"] + '/webtop'
 dav_url = 'https://' + data["hostname"] + '/webtop-dav/server.php'
 
