@@ -168,7 +168,7 @@ container=$(buildah from scratch)
 # Reuse existing nodebuilder-webtop container, to speed up builds
 if ! buildah containers --format "{{.ContainerName}}" | grep -q nodebuilder-webtop; then
     echo "Pulling NodeJS runtime..."
-    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:18-slim
+    buildah from --name nodebuilder-webtop -v "${PWD}:/usr/src:Z" docker.io/library/node:22.16.0-slim
 fi
 
 echo "Build static UI files with node..."
