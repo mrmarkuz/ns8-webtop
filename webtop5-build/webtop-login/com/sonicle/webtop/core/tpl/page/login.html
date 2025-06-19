@@ -60,11 +60,12 @@
         setTimeout(function () {
           $("#wtusername").focus();
         }, 100);
-        $("#wtsubmit").bind("click tap", function () {
+
+        $('form[name="login"]').on("submit", function () {
           $("#location").val(window.location);
-          $('form[name="login"]').submit();
-          $(this).prop("disabled", true);
+          $("#wtsubmit").prop("disabled", true);
         });
+
         $('.svg-inline--fa').on('click', function() {
           var input = $("#wtpassword");
           if (input.attr('type') === "password") {
@@ -121,6 +122,18 @@
               <div>
                 <form name="login" method="post" action="login" class="space-y-6">
                   <input id="location" name="location" type="hidden">
+                  <#if showMaintenance>
+                    <div class="border-l-4 rounded-md p-4 w-full flex border-blue-500 bg-blue-100">
+                      <div class="flex-shrink-0" style="margin-top: 4px;">
+                        <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="circle-xmark" class="svg-inline--fa fa-circle-xmark h-4 w-4 relative -top-0.5 text-blue-700" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"></path></svg>
+                      </div>
+                      <div class="ml-3">
+                        <div class="text-sm text-blue-700">
+                          <p>${maintenanceMessage}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </#if>
                   <#if showFailure>
                     <div class="border-l-4 rounded-md p-4 w-full flex border-rose-500 bg-rose-100">
                       <div class="flex-shrink-0" style="margin-top: 4px;">
@@ -148,7 +161,7 @@
                             type="text"
                             placeholder="${usernamePlaceholder}"
                             class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white text-gray-900 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
-                            required="true"
+                            required
                             autocomplete="username"
                           />
                         </div>
@@ -189,7 +202,7 @@
                             type="password"
                             placeholder="${passwordPlaceholder}"
                             class="block w-full relative focus:z-[8] disabled:cursor-not-allowed bg-white text-gray-900 disabled:border-gray-200 disabled:bg-gray-50 disabled:text-gray-500 rounded-md px-3 py-2 sm:text-sm ring-gray-300 ring-1 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-orange-500 placeholder:text-gray-500 <#if showFailure>ring-rose-500 focus:border-rose-500 focus:ring-rose-500</#if>"
-                            required="true"
+                            required
                             autocomplete="current-password"
                           />
                         </div>
