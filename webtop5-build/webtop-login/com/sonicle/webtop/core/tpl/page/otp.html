@@ -82,6 +82,11 @@
         e.preventDefault();
         submit();
       }
+
+      // block all chars except numbers
+      if (charCode < 48 || charCode > 57) {
+        e.preventDefault();
+      }
     }
 
     function onSubmitClick() {
