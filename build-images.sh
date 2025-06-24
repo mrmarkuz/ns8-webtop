@@ -65,7 +65,7 @@ tar -C "${pecbridge_tmp_dir}" -x -v -z -f pecbridge-*.tar.gz
 
 #Create webtop-webapp container
 reponame="webtop-webapp"
-container=$(buildah from docker.io/library/tomcat:8-jre8)
+container=$(buildah from docker.io/library/tomcat:9.0.106-jre8)
 buildah add ${container} ${webapp_tmp_dir}/webtop /usr/local/tomcat/webapps/webtop/
 buildah add ${container} ${PWD}/webtop5-build/context.xml /usr/local/tomcat/webapps/webtop/META-INF/context.xml
 buildah add ${container} ${PWD}/webtop5-build/webtop-login/ /usr/local/tomcat/webapps/webtop/WEB-INF/classes/
@@ -84,7 +84,7 @@ images+=("${repobase}/${reponame}")
 
 #Create webtop-postgres container
 reponame="webtop-postgres"
-container=$(buildah from docker.io/library/postgres:9.2)
+container=$(buildah from docker.io/library/postgres:17.5)
 buildah add ${container} ${PWD}/webtop5-build/sql-scripts-$webtop_version.tar.gz /docker-entrypoint-initdb.d/
 buildah add ${container} ${PWD}/postgres/data /docker-entrypoint-initdb.d/data
 buildah add ${container} ${PWD}/postgres/postgres /docker-entrypoint-initdb.d/postgres
