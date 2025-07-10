@@ -24,7 +24,6 @@ ExecStart=/usr/bin/podman run \
     --cidfile=%t/postgres.ctr-id \
     --cgroups=no-conmon \
     --volume=pgdata:/var/lib/postgresql/data \
-    --env-file=secrets.env \
     --replace --name=%N \
     ${WEBTOP_POSTGRES_IMAGE}
 ExecStartPost=runagent wait-postgres-init
