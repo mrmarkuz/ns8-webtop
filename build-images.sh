@@ -22,6 +22,7 @@ sha256sum -c CHECKSUM
 if ! buildah containers --format "{{.ContainerName}}" | grep -q webtopbuilder; then
     echo "Pulling maven runtime..."
     buildah from --name webtopbuilder-tmp docker.io/library/maven:3.6-openjdk-8
+    buildah run webtopbuilder-tmp  sed -i 's/deb.debian.org\|security.debian.org/archive.debian.org/' /etc/apt/sources.list
     buildah run webtopbuilder-tmp  apt-get  update
     buildah run webtopbuilder-tmp  apt-get  install -y  nodejs make
     buildah commit --rm webtopbuilder-tmp webtopbuilder-image
