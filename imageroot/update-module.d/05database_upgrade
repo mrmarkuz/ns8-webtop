@@ -1,0 +1,47 @@
+#!/bin/bash
+
+#
+# Copyright (C) 2025 Nethesis S.r.l.
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
+set -e
+
+# redirect the standard output  to the standard error
+exec 1>&2
+
+# test if the postgres-app is active
+if ! systemctl is-active -q --user postgres.service; then
+    echo "Postgres service is not active, exiting"
+    exit 1
+fi
+
+# upgrade postgres from 9 to 17, version 9 is still running
+# dump the webtop database and load it into the new postgres container
+POSTGRES_VERSION=$(podman exec postgres psql --version 2>/dev/null | awk '{print $3}')
+if [[ "$POSTGRES_VERSION" =~ ^9\.[0-9\.]+$ ]]; then # look after 9.2.23
+    if [[ ! -f secrets.env ]]; then
+        echo "generate token for postgres"
+        ../actions/create-module/20postgrestoken
+    fi
+    echo "Postgres: database upgrade from 9 to 17"
+    # Postgres 9 is still running we want to be sure no data is written
+    # we stop the service
+    echo "Stopping webapp service for maintenance mode (to avoid data loss)"
+    systemctl stop --user webapp.service
+    echo "Dumping webtop5 database from postgres container"
+    if ../bin/module-dump-state; then
+        echo "Dumped webtop5 database to webtop5.dump"
+    else
+        echo "Failed to dump webtop5 database"
+        exit 1
+    fi
+    echo "Stopping postgres container for database upgrade"
+    systemctl stop --user postgres.service
+    echo "Remove the v9 postgres volume"
+    podman volume rm -f pgdata
+    echo "Restoring webtop postgres database"
+    ../actions/restore-module/50restore_db
+else 
+    echo "Postgres is already upgraded to version $POSTGRES_VERSION, skipping database upgrade"
+fi
