@@ -8,7 +8,7 @@ trap 'rm -rf "${cleanup_list[@]}"' EXIT
 # Prepare variables for later use
 images=()
 # The image will be pushed to GitHub container registry
-repobase="${REPOBASE:-ghcr.io/nethserver}"
+repobase="${REPOBASE:-ghcr.io/mrmarkuz}"
 #Get WebTop version
 webtop_version=$(cat ${PWD}/webtop5-build/VERSION)
 
